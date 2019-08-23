@@ -112,9 +112,9 @@ namespace QuantConnect.Lean.Engine.Results
             _nextS3Update = StartTime.AddSeconds(30);
 
             //Default charts:
-            Charts.AddOrUpdate("Strategy Equity", new Chart("Strategy Equity"));
-            Charts["Strategy Equity"].Series.Add("Equity", new Series("Equity", SeriesType.Candle, 0, "$"));
-            Charts["Strategy Equity"].Series.Add("Daily Performance", new Series("Daily Performance", SeriesType.Bar, 1, "%"));
+            Charts.AddOrUpdate(Chart.StrategyEquity, new Chart(Chart.StrategyEquity));
+            Charts[Chart.StrategyEquity].Series.Add(Series.Equity, new Series(Series.Equity, SeriesType.Candle, 0, "$"));
+            Charts[Chart.StrategyEquity].Series.Add(Series.DailyPerformance, new Series(Series.DailyPerformance, SeriesType.Bar, 1, "%"));
         }
 
         /// <summary>
@@ -390,16 +390,17 @@ namespace QuantConnect.Lean.Engine.Results
         /// <param name="profitLoss">Collection of time-profit values for the algorithm</param>
         /// <param name="holdings">Current holdings state for the algorithm</param>
         /// <param name="cashbook">Cashbook for the holdingss</param>
-        /// <param name="statisticsResults">Statistics information for the algorithm (empty if not finished)</param>
         /// <param name="banner">Runtime statistics banner information</param>
-        public void SendFinalResult(AlgorithmNodePacket job, Dictionary<int, Order> orders, Dictionary<DateTime, decimal> profitLoss, Dictionary<string, Holding> holdings, CashBook cashbook, StatisticsResults statisticsResults, Dictionary<string, string> banner)
+        public void SendFinalResult(AlgorithmNodePacket job, Dictionary<int, Order> orders, Dictionary<DateTime, decimal> profitLoss, Dictionary<string, Holding> holdings, CashBook cashbook, Dictionary<string, string> banner)
         {
             try
             {
-                FinalStatistics = statisticsResults.Summary;
-
                 //Convert local dictionary:
                 var charts = new Dictionary<string, Chart>(Charts);
+                var statisticsResults = GetStatisticsResult(charts, Algorithm, StartingPortfolioValue, banner);
+
+                FinalStatistics = statisticsResults.Summary;
+
                 _processingFinalPacket = true;
 
                 // clear the trades collection before placing inside the backtest result
@@ -410,7 +411,7 @@ namespace QuantConnect.Lean.Engine.Results
 
                 //Create a result packet to send to the browser.
                 var result = new BacktestResultPacket((BacktestNodePacket) job,
-                    new BacktestResult(charts, orders, profitLoss, statisticsResults.Summary, banner, statisticsResults.RollingPerformances, statisticsResults.TotalPerformance)
+                    new BacktestResult(charts, orders, profitLoss, FinalStatistics, banner, statisticsResults.RollingPerformances, statisticsResults.TotalPerformance)
                         { AlphaRuntimeStatistics = AlphaRuntimeStatistics })
                 {
                     ProcessingTime = (DateTime.UtcNow - StartTime).TotalSeconds,
@@ -611,7 +612,7 @@ namespace QuantConnect.Lean.Engine.Results
         public void SampleEquity(DateTime time, decimal value)
         {
             //Sample the Equity Value:
-            Sample("Strategy Equity", "Equity", 0, SeriesType.Candle, time, value);
+            Sample(Chart.StrategyEquity, Series.Equity, 0, SeriesType.Candle, time, value);
 
             //Recalculate the days processed:
             _daysProcessed = (time - Algorithm.StartDate).TotalDays;
@@ -625,7 +626,7 @@ namespace QuantConnect.Lean.Engine.Results
         public void SamplePerformance(DateTime time, decimal value)
         {
             //Added a second chart to equity plot - daily perforamnce:
-            Sample("Strategy Equity", "Daily Performance", 1, SeriesType.Bar, time, value, "%");
+            Sample(Chart.StrategyEquity, Series.DailyPerformance, 1, SeriesType.Bar, time, value, "%");
         }
 
         /// <summary>
@@ -636,7 +637,7 @@ namespace QuantConnect.Lean.Engine.Results
         /// <seealso cref="IResultHandler.Sample"/>
         public void SampleBenchmark(DateTime time, decimal value)
         {
-            Sample("Benchmark", "Benchmark", 0, SeriesType.Line, time, value);
+            Sample(Chart.Benchmark, Series.Benchmark, 0, SeriesType.Line, time, value);
         }
 
         /// <summary>

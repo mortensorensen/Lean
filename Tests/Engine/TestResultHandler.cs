@@ -24,7 +24,6 @@ using QuantConnect.Lean.Engine.TransactionHandlers;
 using QuantConnect.Orders;
 using QuantConnect.Packets;
 using QuantConnect.Securities;
-using QuantConnect.Statistics;
 
 namespace QuantConnect.Tests.Engine
 {
@@ -136,17 +135,17 @@ namespace QuantConnect.Tests.Engine
 
         public void SampleEquity(DateTime time, decimal value)
         {
-            Sample("Strategy Equity", "Equity", 0, SeriesType.Candle, time, value);
+            Sample(Chart.StrategyEquity, Series.Equity, 0, SeriesType.Candle, time, value);
         }
 
         public void SamplePerformance(DateTime time, decimal value)
         {
-            Sample("Strategy Equity", "Daily Performance", 1, SeriesType.Line, time, value, "%");
+            Sample(Chart.StrategyEquity, Series.DailyPerformance, 1, SeriesType.Line, time, value, "%");
         }
 
         public void SampleBenchmark(DateTime time, decimal value)
         {
-            Sample("Benchmark", "Benchmark", 0, SeriesType.Line, time, value);
+            Sample(Chart.Benchmark, Series.Benchmark, 0, SeriesType.Line, time, value);
         }
 
         public void SampleAssetPrices(Symbol symbol, DateTime time, decimal value)
@@ -192,7 +191,6 @@ namespace QuantConnect.Tests.Engine
             Dictionary<DateTime, decimal> profitLoss,
             Dictionary<string, Holding> holdings,
             CashBook cashbook,
-            StatisticsResults statisticsResults,
             Dictionary<string, string> banner)
         {
         }

@@ -17,10 +17,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using QuantConnect.Interfaces;
 using QuantConnect.Lean.Engine.DataFeeds;
 using QuantConnect.Lean.Engine.TransactionHandlers;
+using QuantConnect.Logging;
+using QuantConnect.Orders;
+using QuantConnect.Statistics;
 
 namespace QuantConnect.Lean.Engine.Results
 {
@@ -136,6 +140,59 @@ namespace QuantConnect.Lean.Engine.Results
         public virtual void SetDataManager(IDataFeedSubscriptionManager dataManager)
         {
             DataManager = dataManager;
+        }
+
+        /// <summary>
+        /// Will generate the statistics results
+        /// </summary>
+        /// <param name="charts">The complete collection of charts</param>
+        /// <param name="algorithm">The algorithm instance</param>
+        /// <param name="startingPortfolioValue">The starting portfolio value</param>
+        /// <param name="banner">Runtime statistics banner information</param>
+        protected static StatisticsResults GetStatisticsResult(Dictionary<string, Chart> charts,
+            IAlgorithm algorithm,
+            decimal startingPortfolioValue,
+            Dictionary<string, string> banner)
+        {
+            var statisticsResults = new StatisticsResults();
+            try
+            {
+                //Generates error when things don't exist (no charting logged, runtime errors in main algo execution)
+                // make sure we've taken samples for these series before just blindly requesting them
+                if (charts.ContainsKey(Chart.StrategyEquity) &&
+                    charts[Chart.StrategyEquity].Series.ContainsKey(Series.Equity) &&
+                    charts[Chart.StrategyEquity].Series.ContainsKey(Series.DailyPerformance) &&
+                    charts.ContainsKey(Chart.Benchmark) &&
+                    charts[Chart.Benchmark].Series.ContainsKey(Series.Benchmark))
+                {
+                    var equity = charts[Chart.StrategyEquity].Series[Series.Equity].Values;
+                    var performance = charts[Chart.StrategyEquity].Series[Series.DailyPerformance].Values;
+                    var profitLoss = new SortedDictionary<DateTime, decimal>(algorithm.Transactions.TransactionRecord);
+                    var totalTransactions = algorithm.Transactions.GetOrders(x => x.Status.IsFill()).Count();
+                    var benchmark = charts[Chart.Benchmark].Series[Series.Benchmark].Values;
+
+                    statisticsResults = StatisticsBuilder.Generate(algorithm.TradeBuilder.ClosedTrades, profitLoss, equity, performance, benchmark,
+                        startingPortfolioValue, algorithm.Portfolio.TotalFees, totalTransactions);
+
+                    //Some users have $0 in their brokerage account / starting cash of $0. Prevent divide by zero errors
+                    var netReturn = startingPortfolioValue > 0 ?
+                                    (algorithm.Portfolio.TotalPortfolioValue - startingPortfolioValue) / startingPortfolioValue
+                                    : 0;
+
+                    //Add other fixed parameters.
+                    banner["Unrealized"] = "$" + algorithm.Portfolio.TotalUnrealizedProfit.ToString("N2");
+                    banner["Fees"] = "-$" + algorithm.Portfolio.TotalFees.ToString("N2");
+                    banner["Net Profit"] = "$" + algorithm.Portfolio.TotalProfit.ToString("N2");
+                    banner["Return"] = netReturn.ToString("P");
+                    banner["Equity"] = "$" + algorithm.Portfolio.TotalPortfolioValue.ToString("N2");
+                }
+            }
+            catch (Exception err)
+            {
+                Log.Error(err, "BaseResultsHandler(): Error generating statistics packet");
+            }
+
+            return statisticsResults;
         }
     }
 }

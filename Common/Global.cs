@@ -506,7 +506,7 @@ namespace QuantConnect
             Initialized = false;
             HasSubscribers = true;
             Status = AlgorithmStatus.Running;
-            ChartSubscription = "Strategy Equity";
+            ChartSubscription = Chart.StrategyEquity;
         }
 
         /// <summary>

@@ -255,6 +255,14 @@ namespace QuantConnect.Lean.Engine
                 }
                 else
                 {
+                    if (_previousTime.Date != time.Date)
+                    {
+                        var currentPortfolioValue = algorithm.Portfolio.TotalPortfolioValue;
+
+                        results.SamplePerformance(_previousTime.Date, portfolioValue == 0m ? 0
+                                : Math.Round((currentPortfolioValue - portfolioValue) * 100 / portfolioValue, 10));
+                        portfolioValue = currentPortfolioValue;
+                    }
                     // live mode continously sample the benchmark
                     SampleBenchmark(algorithm, results, time);
                 }

@@ -228,7 +228,6 @@ namespace QuantConnect.Tests.Engine
                 Dictionary<DateTime, decimal> profitLoss,
                 Dictionary<string, Holding> holdings,
                 CashBook cashbook,
-                StatisticsResults statisticsResults,
                 Dictionary<string, string> banner)
             {
             }

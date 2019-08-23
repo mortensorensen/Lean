@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using QuantConnect.Util;
 
 namespace QuantConnect
 {
@@ -46,8 +47,8 @@ namespace QuantConnect
             var sampled = new Series(series.Name, series.SeriesType, series.Index, series.Unit);
 
             // chart point times are always in universal, so force it here as well
-            double nextSample = Time.DateTimeToUnixTimeStamp(start.ToUniversalTime());
-            double unixStopDate = Time.DateTimeToUnixTimeStamp(stop.ToUniversalTime());
+            var nextSample = Time.DateTimeToUnixTimeStamp(start.ToUniversalTime());
+            var unixStopDate = Time.DateTimeToUnixTimeStamp(stop.ToUniversalTime());
 
             // we can't sample a single point and it doesn't make sense to sample scatter plots
             // in this case just copy the raw data
@@ -116,6 +117,8 @@ namespace QuantConnect
                 }
             }
             while (true);
+
+            enumerator.DisposeSafely();
 
             return sampled;
         }

@@ -29,7 +29,7 @@ namespace QuantConnect.Algorithm
 
         private static readonly Dictionary<string, List<string>> ReservedChartSeriesNames = new Dictionary<string, List<string>>
         {
-            { "Strategy Equity", new List<string> { "Equity", "Daily Performance" } },
+            { Chart.StrategyEquity, new List<string> { Series.Equity, Series.DailyPerformance } },
             { "Meta", new List<string>() },
             { "Alpha", new List<string> { "Direction Score", "Magnitude Score" } },
             { "Alpha Count", new List<string> { "Count" } },
@@ -62,7 +62,7 @@ namespace QuantConnect.Algorithm
         public void Plot(string series, decimal value)
         {
             //By default plot to the primary chart:
-            Plot("Strategy Equity", series, value);
+            Plot(Chart.StrategyEquity, series, value);
         }
 
         /// <summary>

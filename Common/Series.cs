@@ -32,6 +32,21 @@ namespace QuantConnect
     public class Series
     {
         /// <summary>
+        /// The name of the benchmark series
+        /// </summary>
+        public const string Benchmark = "Benchmark";
+
+        /// <summary>
+        /// The name of the equity series
+        /// </summary>
+        public const string Equity = "Equity";
+
+        /// <summary>
+        /// The name of the daily performance series
+        /// </summary>
+        public const string DailyPerformance = "Daily Performance";
+
+        /// <summary>
         /// Name of the Series:
         /// </summary>
         public string Name = "";

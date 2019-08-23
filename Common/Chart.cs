@@ -28,6 +28,16 @@ namespace QuantConnect
     [JsonObject]
     public class Chart
     {
+        /// <summary>
+        /// The name of the strategy equity chart
+        /// </summary>
+        public const string StrategyEquity = "Strategy Equity";
+
+        /// <summary>
+        /// The name of the benchmark chart
+        /// </summary>
+        public const string Benchmark = "Benchmark";
+
         /// Name of the Chart:
         public string Name = "";
 
